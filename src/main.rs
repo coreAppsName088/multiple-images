@@ -36,30 +36,24 @@ fn main() {
 
     println!("Total de imágenes encontradas: {}", imagenes.len());
 
-    // Abre cada imagen cada 5 segundos
-    for (i, imagen) in imagenes.iter().enumerate() {
-        println!("Abriendo imagen #{}: {}", i + 1, imagen);
+   let cantidad_por_grupo = 2; // cambia este número (2, 3, 4...)
 
+    for chunk in imagenes.chunks(cantidad_por_grupo) {
+        for imagen in chunk {
+            println!("Abriendo: {}", imagen);
 
-        let _ = Command::new("powershell")
-            .args(["-Command", &format!("Unblock-File -Path '{}'", imagen)])
-            .output();
-        
-        let _resultado = if i % 2 == 0 {
-            // Visor antiguo
-            Command::new("rundll32.exe")
-                .arg(r"C:\Windows\System32\shimgvw.dll,ImageView_Fullscreen")
-                .arg(imagen)
-                .spawn()
-        } else {
-            // Visor nuevo (predeterminado)
-            Command::new("cmd")
+            // Quitar la advertencia
+            let _ = Command::new("powershell")
+                .args(["-Command", &format!("Unblock-File -Path '{}'", imagen)])
+                .output();
+
+            // Abrir la imagen
+            let _ = Command::new("cmd")
                 .args(["/C", "start", "", imagen])
-                .spawn()
-        };
+                .spawn();
+        }
 
-
-
+        // Espera 5 segundos antes del siguiente grupo
         thread::sleep(Duration::from_secs(5));
     }
 
